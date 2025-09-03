@@ -949,19 +949,19 @@ transaction_data = {
 }
 
 @app.get("/credit/{user_id}")
-def get_user_info(user_id: str):
+def get_credit_info(user_id: str):
     if user_id == credit_data["user_id"]:
         return JSONResponse(content=credit_data)
     return JSONResponse(status_code=404, content={"error": "User not found"})
 
 @app.get("/balance/{user_id}")
-def get_user_info(user_id: str):
+def get_balance_info(user_id: str):
     if user_id == balance_data["user_id"]:
         return JSONResponse(content=balance_data)
     return JSONResponse(status_code=404, content={"error": "User not found"})
 
 @app.get("/transaction/{user_id}")
-def get_user_info(user_id: str):
+def get_transaction_info(user_id: str):
     if user_id == transaction_data["user_id"]:
         return JSONResponse(content=transaction_data)
     return JSONResponse(status_code=404, content={"error": "User not found"})

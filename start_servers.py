@@ -5,7 +5,6 @@ Startup script for the Finance Bot servers
 import subprocess
 import time
 import sys
-import os
 from pathlib import Path
 
 def start_server(script_path, name, port):

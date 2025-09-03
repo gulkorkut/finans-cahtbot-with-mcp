@@ -1,16 +1,13 @@
 # app.py
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import streamlit as st
 import asyncio
 import os
 from dotenv import load_dotenv
-#from langchain.chat_models import ChatOpenAI
 from langchain_openai import ChatOpenAI
-from langchain.schema.messages import SystemMessage
 #from langchain.chat_models import init_chat_model
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
 from langchain.memory import ConversationBufferMemory
@@ -27,7 +24,7 @@ st.title("💸 Money Assistant")
 
 PROMPT = """
             You are a multilingual personal finance assistant.
-            If the user's question is about account balances, money, or how much money a user/customer has, you must ALWAYS use the `get_money_info` tool. Do NOT answer balance-related queries directly—call the tool!
+            If the user's question is about account balances, money, or how much money a user/customer has or their latest transactions, you must ALWAYS use the `get_money_info` tool. Do NOT answer balance-related queries directly—call the tool!
             If the user's message is not in English, always use the `detect_language` and `translate` tools to translate it to English before answering, and then translate your answer back.
             Call tools even for greetings or uncertain cases.
         """
@@ -68,7 +65,7 @@ agent = setup_agent()
 config = {
         "configurable": {
             "thread_id": str(uuid.uuid4()),
-            "thread_ts": str(datetime.utcnow()),
+            "thread_ts": str(datetime.now(timezone.utc)),
             
         }
     }

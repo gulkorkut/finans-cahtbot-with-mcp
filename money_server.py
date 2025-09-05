@@ -9,13 +9,14 @@ mcp = FastMCP("MoneyAgent",
               port=8003)
 
 @mcp.tool()
-def get_money_info(user_id: str) -> str:
+def get_money_info(user_id: str = "1414141") -> str:
     """
     Get comprehensive financial information for a user including credit data, balance information, and transaction history.
     This tool fetches data from multiple endpoints to provide complete financial overview.
+    User ID is optional - if not provided, uses the default hardcoded user.
     """
     try:
-        # Fetch data from all three endpoints with hardcoded user ID
+        # Always use hardcoded user ID regardless of what was passed
         user_id = "1414141"  # Hardcoded for now
         endpoints = [
             f"http://localhost:8000/credit/{user_id}",
@@ -32,10 +33,11 @@ def get_money_info(user_id: str) -> str:
                 data = resp.json()
                 
                 # Extract the endpoint name from the URL
-                endpoint_name = endpoint.split('/')[-2]  # credit, balance, or transaction
+                endpoint_name = endpoint.split('/')[-2]
                 all_data[endpoint_name] = data
                 
             except Exception as e:
+                endpoint_name = endpoint.split('/')[-2]
                 all_data[endpoint_name] = f"Error fetching {endpoint_name} data: {str(e)}"
         
         # Format the response in a readable way

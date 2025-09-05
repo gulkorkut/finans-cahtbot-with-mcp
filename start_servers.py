@@ -33,6 +33,7 @@ def main():
         ("Data Server", "data_servers/main.py", 8000),
         ("Translation Server", "translation_server.py", 8002),
         ("Money Server", "money_server.py", 8003),
+        ("Product Server", "product_server.py", 8004),
     ]
     
     processes = []

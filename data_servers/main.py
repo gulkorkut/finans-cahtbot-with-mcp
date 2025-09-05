@@ -948,6 +948,81 @@ transaction_data = {
   ]
 }
 
+product_data = [
+  {
+    "product_id": "p_cc_travel_max",
+    "type": "CREDIT_CARD",
+    "name": "Travel Max Card",
+    "short_description": "High-mileage travel card with lounge access",
+    "features": ["2x miles on travel", "Lounge access", "FX fee 0%"],
+    "apr_or_rate": 0.329,
+    "fees": {
+      "annual": 900,
+      "foreign_txn": 0
+    },
+    "tags": ["travel", "premium"],
+    "active": True
+  },
+  {
+    "product_id": "p_sav_goal_welcome",
+    "type": "SAVINGS",
+    "name": "Goal Saver — Welcome Rate",
+    "short_description": "Higher welcome yield for your first months, then standard rate.",
+    "features": ["Welcome rate for first 3 months up to ₺100,000", "Auto-sweep from checking", "Goal tracking & alerts"],
+    "apr_or_rate": 0.060,
+    "fees": {},
+    "tags": ["savings", "welcome", "yield"],
+    "active": True,
+    "promotions": {
+      "welcome": {
+        "apr": 0.120,
+        "duration_months": 3,
+        "balance_cap": 100000
+      }
+    }
+  },
+  {
+    "product_id": "p_loan_personal_intro",
+    "type": "LOAN",
+    "name": "Personal Flex Loan — Intro APR",
+    "short_description": "Lower intro APR, flexible terms, no prepayment penalty.",
+    "features": ["Intro APR for first 6 months", "Terms from 12–36 months", "No prepayment penalty"],
+    "apr_or_rate": 0.289,
+    "fees": {
+      "origination": 0,
+      "late_fee": 150
+    },
+    "tags": ["loan", "intro_rate", "personal"],
+    "active": True,
+    "promotions": {
+      "intro_apr": {
+        "apr": 0.219,
+        "duration_months": 6
+      }
+    }
+  },
+  {
+    "product_id": "p_cc_tech_cashback",
+    "type": "CREDIT_CARD",
+    "name": "Tech+ Shopper Card",
+    "short_description": "Extra rewards at electronics & tech stores, plus purchase protections.",
+    "features": ["5% cashback at partner electronics stores", "Extended warranty & purchase protection", "Installment options for eligible electronics purchases"],
+    "apr_or_rate": 0.369,
+    "fees": {
+      "annual": 300,
+      "foreign_txn": 3
+    },
+    "tags": ["electronics", "tech", "cashback"],
+    "active": True,
+    "promotions": {
+      "electronics_cashback_welcome": {
+        "rate": 0.10,
+        "duration_days": 90,
+        "monthly_cap": 1000
+      }
+    }
+  }
+]
 @app.get("/credit/{user_id}")
 def get_credit_info(user_id: str):
     if user_id == credit_data["user_id"]:
@@ -965,6 +1040,11 @@ def get_transaction_info(user_id: str):
     if user_id == transaction_data["user_id"]:
         return JSONResponse(content=transaction_data)
     return JSONResponse(status_code=404, content={"error": "User not found"})
+
+@app.get("/products")
+def get_products():
+    """Get all available financial products"""
+    return JSONResponse(content=product_data)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, reload=True)

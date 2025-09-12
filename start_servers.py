@@ -34,6 +34,8 @@ def main():
         ("Translation Server", "translation_server.py", 8002),
         ("Money Server", "money_server.py", 8003),
         ("Product Server", "product_server.py", 8004),
+        ("Fraud Server", "fraud_server.py", 8005),  # FraudAgent
+
     ]
     
     processes = []

@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langgraph.prebuilt import create_react_agent
-from langchain.memory import ConversationBufferMemory
+from langchain_core.messages import HumanMessage
 
 # Load environment variables
 load_dotenv()
@@ -23,13 +23,25 @@ st.set_page_config(page_title="Money Assistant", page_icon="💸")
 st.title("💸 Money Assistant")
 
 PROMPT = """
-            You are a multilingual personal finance assistant that helps customers understand their finances and recommends suitable products based on their spending patterns.
+            You are a multilingual personal finance assistant that helps customers understand their finances and recommends suitable products based on their spending patterns. 
 
             **CORE BEHAVIOR:**
             - ALWAYS use the `get_money_info` tool first when users ask about balances, transactions, or financial status
             - Use the `get_products` tool to access current product catalog when making recommendations
             - Analyze spending patterns from transaction data to suggest relevant products
             - Be conversational and helpful, not pushy about products
+
+            **FRAUD DETECTION APPROACH:**
+            •⁠  ⁠If the user's question mentions suspicious transactions, fraud, chargebacks, or abnormal behavior,
+                ALWAYS call the FraudAgent (get transaction score, check application fraud).
+            If the user says things like "I didn’t make my last transaction", "The last two transactions are not mine",
+              or "The YouTube payment is not mine", ALWAYS call the get_money_info tool to retrieve the relevant transaction(s).
+              Then, show the suspected transaction(s) with: "Are you referring to this transaction?" 
+              → If the user confirms (Yes), respond with: 
+                "We have reported this issue to our customer service team. They will be in touch with you as soon as possible today."
+              → If the user says "No", show the next most relevant recent transaction(s) using get_money_info and ask again.
+              → If the user still says "No", respond with: 
+                "Understood. We have reported this issue to our customer service team. They will be in touch with you as soon as possible today."
 
             **PRODUCT RECOMMENDATION APPROACH:**
             1. First understand the customer's financial situation using money data
@@ -58,13 +70,18 @@ tool_configs = {
     "ProductAgent": {
         "url": "http://localhost:8004/mcp",
         "transport": "streamable_http"
+    },
+    "FraudAgent": {
+        "url": "http://localhost:8005/mcp",
+        "transport": "streamable_http"
     }
+
 }
 
-# Memory setup
-if "memory" not in st.session_state:
-    memory = ConversationBufferMemory(return_messages=True)
-    st.session_state.memory = memory
+# Generate a thread_id if it doesn't exist
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid.uuid4())
+
 
 # Agent setup
 @st.cache_resource
@@ -84,22 +101,27 @@ agent = setup_agent()
 
 config = {
         "configurable": {
-            "thread_id": str(uuid.uuid4()),
-            "thread_ts": str(datetime.now(timezone.utc)),
-            
+            "thread_id": st.session_state.thread_id,
         }
     }
 
 # UI
-user_input = st.chat_input("Asistanınıza bir şey sorun...")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for msg in st.session_state.messages:
+    st.chat_message(msg["role"]).write(msg["content"])
+
+user_input = st.chat_input("Ask your assistant something...")
 
 if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
     st.chat_message("user").write(user_input)
     with st.chat_message("assistant"):
         async def process_stream():
             all_chunks = []
             async for chunk in agent.astream(
-                {"messages": [{"role": "user", "content": user_input}]},
+                {"messages": [HumanMessage(content=user_input)]},
                 stream_mode="updates", config=config
             ):
                 all_chunks.append(chunk)
@@ -118,8 +140,9 @@ if user_input:
                         break
             
             if final_response:
+                st.session_state.messages.append({"role": "assistant", "content": final_response})
                 st.write(final_response)
             else:
-                st.write("İşleminiz tamamlanıyor...")
+                st.write("Your request is being processed...")
         
         asyncio.run(process_stream())

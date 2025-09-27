@@ -101,3 +101,4 @@ python-dotenv
 langchain-openai
 streamlit
 sqlalchemy
+langgraph-checkpoint-sqlite

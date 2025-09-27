@@ -99,3 +99,5 @@ xxhash==3.5.0
 zstandard==0.23.0
 python-dotenv
 langchain-openai
+streamlit
+sqlalchemy
